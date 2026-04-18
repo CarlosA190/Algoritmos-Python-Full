@@ -1,31 +1,26 @@
 import requests
- 
-def obtener_pokemon(nombre_o_id):
-    url = f"https://pokeapi.co/api/v2/pokemon/{nombre_o_id.lower()}"
-   
+
+def obtener_pokemon(limite=20):
+    url = f"https://pokeapi.co/api/v2/pokemon?limit={limite}"
+    
     try:
-        response = requests.get(url)
-       
-        # Si la respuesta es 200 (OK)
-        if response.status_code == 200:
-            datos = response.json()
-           
-            print(f"--- Datos de {datos['name'].capitalize()} ---")
-            print(f"ID: {datos['id']}")
-            print(f"Altura: {datos['height']}")
-            print(f"Peso: {datos['weight']}")
-           
-            # Extraer tipos
-            tipos = [t['type']['name'] for t in datos['types']]
-            print(f"Tipo(s): {', '.join(tipos)}")
-           
-        elif response.status_code == 404:
-            print("Error: Pokémon no encontrado.")
-        else:
-            print(f"Error inesperado: {response.status_code}")
-           
+        respuesta = requests.get(url, timeout=10)
+        respuesta.raise_for_status()
+        
+        datos = respuesta.json()
+        pokemon_lista = datos["results"]
+        
+        print("Lista de Pokémon:\n")
+        for i, pokemon in enumerate(pokemon_lista, start=1):
+            print(f"{i}. {pokemon['name']}")
+    
+    except requests.exceptions.ConnectionError as e:
+        print(f"Error de conexión: {e}")
+    except requests.exceptions.Timeout:
+        print("Error: La API tardó demasiado en responder.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error HTTP: {e}")
     except Exception as e:
-        print(f"Ocurrió un error de conexión: {e}")
- 
-# Ejecutamos el ejemplo con Ditto
-obtener_pokemon("charizard")
+        print(f"Error inesperado: {e}")
+
+obtener_pokemon()
